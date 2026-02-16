@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ board.title }} - Kanban{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h1 class="text-3xl font-bold">{{ board.title }}</h1>
+        <p class="text-gray-600">{{ board.description }}</p>
+    </div>
+    <a href="{% url 'column_create' board.id %}"
+        class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+        + Add Column
+    </a>
+</div>
+
+<div class="flex overflow-x-auto space-x-4 pb-4">
+    {% for column in columns %}
+    <div class="bg-gray-200 rounded-lg p-4 w-72 flex-shrink-0">
+        <h3 class="font-bold mb-4 flex justify-between">
+            {{ column.title }}
+            <span class="text-xs text-gray-500">{{ column.cards.count }} cards</span>
+        </h3>
+
+        <div class="space-y-3 min-h-[50px]">
+            {% for card in column.cards.all %}
+            <div class="bg-white p-3 rounded shadow hover:shadow-md cursor-pointer">
+                <h4 class="font-semibold">{{ card.title }}</h4>
+                {% if card.due_date %}
+                <p class="text-xs text-red-500 mt-1">Due: {{ card.due_date|date:"M d" }}</p>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p class="text-sm text-gray-500 italic text-center py-2">No cards yet</p>
+            {% endfor %}
+        </div>
+
+        <a href="{% url 'card_create' column.id %}"
+            class="block mt-4 text-center text-gray-600 hover:text-gray-900 text-sm font-semibold">
+            + Add Card
+        </a>
+    </div>
+    {% endfor %}
+
+    {% if not columns %}
+    <div class="w-full text-center py-10 bg-white rounded-lg border-dashed border-2 border-gray-300">
+        <p class="text-gray-500 mb-4">This board is empty. Start by adding a column.</p>
+        <a href="{% url 'column_create' board.id %}"
+            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+            Add First Column
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

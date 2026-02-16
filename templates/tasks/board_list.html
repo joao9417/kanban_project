@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}My Boards - Kanban{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">My Boards</h1>
+    <a href="{% url 'board_create' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        Create New Board
+    </a>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    {% for board in boards %}
+    <a href="{% url 'board_detail' board.pk %}"
+        class="block p-6 bg-white rounded-lg border border-gray-200 shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{{ board.title }}</h5>
+        <p class="font-normal text-gray-700 dark:text-gray-400">{{ board.description|truncatewords:20 }}</p>
+    </a>
+    {% empty %}
+    <p class="text-gray-600 col-span-3 text-center">You have no boards yet. Create one to get started!</p>
+    {% endfor %}
+</div>
+{% endblock %}
