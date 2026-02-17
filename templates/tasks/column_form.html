@@ -1,28 +1,40 @@
 {% extends 'base.html' %}
 
-{% block title %}Add Column - Kanban{% endblock %}
+{% block title %}{% if form.instance.pk %}Edit Column{% else %}Add Column{% endif %}{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white p-8 border border-gray-300 shadow-lg rounded-lg">
-    <h2 class="text-2xl font-bold mb-6 text-center">Add Column</h2>
+<div class="max-w-md mx-auto bg-white p-8 rounded shadow-md">
+    <h1 class="text-2xl font-bold mb-6">{% if form.instance.pk %}Edit Column{% else %}Add New Column{% endif %}</h1>
     <form method="post">
         {% csrf_token %}
-        {% for field in form %}
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ field.id_for_label }}">
-                {{ field.label }}
-            </label>
-            {{ field }}
-            {% if field.errors %}
-            <p class="text-red-500 text-xs italic">{{ field.errors.0 }}</p>
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="id_title">Title</label>
+            {{ form.title }}
+            {% if form.title.errors %}
+            <p class="text-red-500 text-xs italic">{{ form.title.errors.0 }}</p>
             {% endif %}
         </div>
-        {% endfor %}
-        <button
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            type="submit">
-            Add
-        </button>
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="id_order">Order</label>
+            {{ form.order }}
+            {% if form.order.errors %}
+            <p class="text-red-500 text-xs italic">{{ form.order.errors.0 }}</p>
+            {% endif %}
+        </div>
+        <div class="flex items-center justify-between">
+            <button
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                type="submit">
+                Save
+            </button>
+            {% if form.instance.pk %}
+            <a href="{% url 'board_detail' form.instance.board.pk %}"
+                class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">Cancel</a>
+            {% else %}
+            <a href="javascript:history.back()"
+                class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">Cancel</a>
+            {% endif %}
+        </div>
     </form>
 </div>
 {% endblock %}

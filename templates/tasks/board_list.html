@@ -1,24 +1,36 @@
 {% extends 'base.html' %}
 
-{% block title %}My Boards - Kanban{% endblock %}
+{% block title %}My Boards{% endblock %}
 
 {% block content %}
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold text-gray-800">My Boards</h1>
     <a href="{% url 'board_create' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        Create New Board
+        + New Board
     </a>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for board in boards %}
-    <a href="{% url 'board_detail' board.pk %}"
-        class="block p-6 bg-white rounded-lg border border-gray-200 shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
-        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{{ board.title }}</h5>
-        <p class="font-normal text-gray-700 dark:text-gray-400">{{ board.description|truncatewords:20 }}</p>
-    </a>
+    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
+        <h2 class="text-xl font-bold mb-2">
+            <a href="{% url 'board_detail' board.pk %}" class="text-blue-600 hover:text-blue-800">{{ board.title }}</a>
+        </h2>
+        <p class="text-gray-600 mb-4 h-12 overflow-hidden">{{ board.description|truncatewords:20 }}</p>
+        <div class="flex justify-between items-center text-sm text-gray-500">
+            <span>{{ board.columns.count }} Columns</span>
+            <div>
+                <a href="{% url 'board_update' board.pk %}" class="text-yellow-600 hover:text-yellow-800 mr-2">Edit</a>
+                <a href="{% url 'board_delete' board.pk %}" class="text-red-600 hover:text-red-800">Delete</a>
+            </div>
+        </div>
+    </div>
     {% empty %}
-    <p class="text-gray-600 col-span-3 text-center">You have no boards yet. Create one to get started!</p>
+    <div class="col-span-3 text-center py-10">
+        <p class="text-gray-500 text-xl">You have no boards yet.</p>
+        <a href="{% url 'board_create' %}" class="text-blue-500 hover:underline mt-2 inline-block">Create your first
+            board</a>
+    </div>
     {% endfor %}
 </div>
 {% endblock %}
