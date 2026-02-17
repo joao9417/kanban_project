@@ -1,28 +1,31 @@
 {% extends 'base.html' %}
 
-{% block title %}Create Board - Kanban{% endblock %}
+{% block title %}{% if form.instance.pk %}Edit Board{% else %}Create Board{% endif %}{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white p-8 border border-gray-300 shadow-lg rounded-lg">
-    <h2 class="text-2xl font-bold mb-6 text-center">Create New Board</h2>
+<div class="max-w-md mx-auto bg-white p-8 rounded shadow-md">
+    <h1 class="text-2xl font-bold mb-6">{% if form.instance.pk %}Edit Board{% else %}Create New Board{% endif %}</h1>
     <form method="post">
         {% csrf_token %}
-        {% for field in form %}
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ field.id_for_label }}">
-                {{ field.label }}
-            </label>
-            {{ field }}
-            {% if field.errors %}
-            <p class="text-red-500 text-xs italic">{{ field.errors.0 }}</p>
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="id_title">Title</label>
+            {{ form.title }}
+            {% if form.title.errors %}
+            <p class="text-red-500 text-xs italic">{{ form.title.errors.0 }}</p>
             {% endif %}
         </div>
-        {% endfor %}
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="id_description">Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+            <p class="text-red-500 text-xs italic">{{ form.description.errors.0 }}</p>
+            {% endif %}
+        </div>
         <div class="flex items-center justify-between">
             <button
                 class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                 type="submit">
-                Create
+                Save
             </button>
             <a href="{% url 'board_list' %}"
                 class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
