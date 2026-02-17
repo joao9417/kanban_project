@@ -22,9 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
     path('accounts/register/', views.register, name='register'),
-    path('', views.BoardListView.as_view(), name='board_list'),
-    path('board/new/', views.BoardCreateView.as_view(), name='board_create'),
-    path('board/<int:pk>/', views.BoardDetailView.as_view(), name='board_detail'),
-    path('board/<int:board_id>/column/new/', views.ColumnCreateView.as_view(), name='column_create'),
-    path('column/<int:column_id>/card/new/', views.CardCreateView.as_view(), name='card_create'),
+    path('', include('tasks.urls')),
 ]
+
