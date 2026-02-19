@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Third-party apps
     'tasks',
+    'django.contrib.admindocs',
 ]
 
 MIDDLEWARE = [
