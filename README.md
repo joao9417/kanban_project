@@ -1,60 +1,65 @@
-# Django Kanban Management System
+# Engineering Kanban Project Management System
 
-A robust, professional Task Management (Kanban) application built with **Native Django** and **Tailwind CSS**. This project demonstrates clean code practices, comprehensive documentation, and a seamless user experience, making it an ideal piece for a professional developer portfolio.
+A professional, engineering-focused Project Management application built with **Django 6.0** and **Bootstrap 5.3**. This system is designed for engineering teams, providing role-based task tracking, dual-view perspectives (Scrum and Workload), and automated performance analytics.
 
 ## 🚀 Key Features
 
-- **Project Management**: Create and manage multiple Kanban boards.
-- **Dynamic Workflow**: Organise tasks into customisable columns (e.g., Todo, In Progress, Done).
-- **Task Detailed Tracking**: Add descriptions, due dates, and maintain task order within columns.
-- **User Feedback**: Integrated Django Messages framework for real-time CRUD notifications.
-- **Professional Standards**: Full Type Hinting (PEP 484) and comprehensive Docstrings (PEP 257) in English.
-- **Automated Documentation**: Configured with `django.contrib.admindocs` for live technical reference.
-- **Clean Architecture**: Built using Class-Based Views (CBV) for maximum maintainability.
+- **Project Hierarchy**: Structure your work by Project (Board) > Columns > Tasks (Cards).
+- **Dual-View Toggle**:
+  - **Scrum View**: Classic status-based workflow (Backlog, To Do, In Progress, Review, Done).
+  - **Workload View**: Resource-based perspective showing tasks assigned to each engineer with real-time overdue alerts.
+- **Role-Based Access Control**:
+  - **Project Owner (Jefe de Ingeniería)**: Full control over board management, member invitations, and final task approval (marks tasks as 'Done').
+  - **Board Members (Engineers)**: Participate in projects, update task progress, and move cards through the workflow up to clinical review.
+- **Engineering Discipline Tracking**: Categorise tasks by Mechanical, Electrical, Automation, or Refrigeration with colour-coded identifiers.
+- **Automated Analytics**: Generating project performance reports upon completion, including:
+  - Task completion rates.
+  - Overdue task analysis.
+  - Average progress per discipline.
+- **Local Network Testing**: Pre-configured for team testing across a local network (LAN).
 
 ## 🛠️ Technical Stack
 
-- **Backend**: Python 3.x, Django 6.0
-- **Frontend**: HTML5, Tailwind CSS (via CDN)
+- **Backend**: Python 3.13+, Django 6.0
+- **Frontend**: HTML5, Bootstrap 5.3, Bootstrap Icons
 - **Database**: SQLite (Development)
-- **Documentation**: docutils (admindocs), Markdown
-- **Diagrams**: Mermaid.js
+- **Styling**: Vanilla CSS with custom engineering-themed design system
+- **Architecture**: Class-Based Views (CBV) and Django Signals for secondary processing
 
 ## 📊 Database Schema
 
 ```mermaid
 erDiagram
     USER ||--o{ BOARD : owns
+    USER ||--o{ BOARD : member_of
     BOARD ||--o{ COLUMN : contains
     COLUMN ||--o{ CARD : contains
-
-    USER {
-        string username
-        string password
-        string email
-    }
+    BOARD ||--o| BOARDANALYTICS : generates
+    USER ||--o{ CARD : assigned_to
 
     BOARD {
         string title
         text description
+        string status
         datetime created_at
-        datetime updated_at
-    }
-
-    COLUMN {
-        string title
-        int order
-        datetime created_at
-        datetime updated_at
     }
 
     CARD {
         string title
         text description
-        int order
+        string status
+        string discipline
+        int progress
         datetime due_date
-        datetime created_at
-        datetime updated_at
+        int order
+    }
+
+    BOARDANALYTICS {
+        int total_cards
+        int completed_cards
+        int overdue_cards
+        float avg_progress
+        json discipline_stats
     }
 ```
 
@@ -85,20 +90,24 @@ erDiagram
    python manage.py migrate
    ```
 
-5. **Create a Superuser** (for Admin and Docs access):
-   ```bash
-   python manage.py createsuperuser
-   ```
-
-6. **Start the Server**:
+5. **Start the Server**:
    ```bash
    python manage.py runserver
    ```
 
-7. **Access the App**:
-   - Application: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
-   - Admin Interface: [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
-   - Technical Docs: [http://127.0.0.1:8000/admin/doc/](http://127.0.0.1:8000/admin/doc/)
+## 🌐 Local Network Access
+
+To allow other team members on the same network to access the board:
+
+1. **Identify your Local IP**:
+   Run `ipconfig` (Windows) and look for the IPv4 Address (e.g., `192.168.x.x`).
+
+2. **Run Server specifying the IP**:
+   ```bash
+   python manage.py runserver 0.0.0.0:8000
+   ```
+
+3. **Access via**: `http://<your-local-ip>:8000`
 
 ## 📝 Licence
 
