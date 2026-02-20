@@ -1,0 +1,72 @@
+{% comment %}
+Reusable card snippet used in both Scrum and Workload views.
+Receives 'card' from the parent for loop.
+Discipline left-border and Bootstrap progress bar included.
+{% endcomment %}
+<div
+    class="card task-card mb-2 border-0 shadow-sm discipline-{% if card.discipline %}{{ card.discipline }}{% else %}none{% endif %}">
+    <div class="card-body py-2 px-3">
+
+        <!-- Title row -->
+        <div class="d-flex justify-content-between align-items-start gap-1">
+            <span class="fw-semibold" style="font-size:.85rem;">{{ card.title }}</span>
+            {% if card.is_overdue %}
+            <span class="badge bg-danger flex-shrink-0" style="font-size:.65rem;">Overdue</span>
+            {% endif %}
+        </div>
+
+        <!-- Discipline badge -->
+        {% if card.discipline %}
+        <div class="mt-1">
+            <span class="badge bg-{{ card.discipline_colour }}" style="font-size:.65rem;">
+                {{ card.get_discipline_display }}
+            </span>
+            <span class="badge bg-light text-dark border" style="font-size:.65rem;">
+                {{ card.get_status_display }}
+            </span>
+        </div>
+        {% endif %}
+
+        <!-- Progress bar -->
+        {% if card.progress > 0 %}
+        <div class="progress mt-2" style="height:5px;" title="{{ card.progress }}% complete">
+            <div class="progress-bar
+                {% if card.progress >= 75 %}bg-success
+                {% elif card.progress >= 40 %}bg-warning
+                {% else %}bg-danger{% endif %}" role="progressbar" style="width:{{ card.progress }}%"
+                aria-valuenow="{{ card.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <small class="text-muted" style="font-size:.7rem;">{{ card.progress }}%</small>
+        {% endif %}
+
+        <!-- Footer: assignee avatar + due date + edit/delete -->
+        <div class="d-flex justify-content-between align-items-center mt-2">
+            <div class="d-flex align-items-center gap-1">
+                {% if card.assignee %}
+                <span class="avatar" title="{{ card.assignee.username }}">
+                    {{ card.assignee.username|first|upper }}
+                </span>
+                <small class="text-muted" style="font-size:.7rem;">{{ card.assignee.username }}</small>
+                {% else %}
+                <small class="text-muted" style="font-size:.7rem;">Unassigned</small>
+                {% endif %}
+            </div>
+            <div class="d-flex gap-1">
+                <a href="{% url 'card_update' card.pk %}" class="btn btn-outline-secondary btn-sm py-0 px-1">
+                    <i class="bi bi-pencil" style="font-size:.65rem;"></i>
+                </a>
+                <a href="{% url 'card_delete' card.pk %}" class="btn btn-outline-danger btn-sm py-0 px-1">
+                    <i class="bi bi-trash" style="font-size:.65rem;"></i>
+                </a>
+            </div>
+        </div>
+
+        {% if card.due_date %}
+        <div class="mt-1">
+            <small class="text-muted" style="font-size:.7rem;">
+                <i class="bi bi-calendar3 me-1"></i>{{ card.due_date|date:"M d" }}
+            </small>
+        </div>
+        {% endif %}
+    </div>
+</div>

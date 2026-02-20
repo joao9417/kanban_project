@@ -1,88 +1,182 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% block title %}{{ board.title }} — Engineering Kanban{% endblock %}
 
-{% block title %}{{ board.title }}{% endblock %}
+{% block extra_head %}
+<style>
+    .kanban-col-header {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+
+    .scrum-col {
+        min-width: 220px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="flex flex-col h-full">
-    <!-- Board Header -->
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-800">{{ board.title }}</h1>
-            <p class="text-gray-600">{{ board.description }}</p>
-        </div>
-        <div class="flex space-x-2">
-            <a href="{% url 'column_create' board.pk %}"
-                class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
-                + Add Column
-            </a>
-            <a href="{% url 'board_update' board.pk %}"
-                class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">
-                Edit Board
-            </a>
-            <a href="{% url 'board_list' %}"
-                class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                Back to Dashboard
-            </a>
-        </div>
+<!-- Board Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <div>
+        <h2 class="h4 fw-bold mb-0">{{ board.title }}</h2>
+        <small class="text-muted">{{ board.description }}</small>
     </div>
-
-    <!-- Kanban Columns -->
-    <div class="flex overflow-x-auto space-x-4 pb-4">
-        {% for column in columns %}
-        <div
-            class="flex-shrink-0 w-80 bg-gray-200 rounded-lg shadow overflow-hidden flex flex-col max-h-[calc(100vh-200px)]">
-            <!-- Column Header -->
-            <div class="p-4 bg-gray-300 flex justify-between items-center font-bold text-gray-700">
-                <h3>{{ column.title }}</h3>
-                <div class="space-x-1">
-                    <a href="{% url 'column_update' column.pk %}"
-                        class="text-xs text-blue-600 hover:text-blue-800">Edit</a>
-                    <a href="{% url 'column_delete' column.pk %}"
-                        class="text-xs text-red-600 hover:text-red-800">Del</a>
-                </div>
-            </div>
-
-            <!-- Cards -->
-            <div class="p-2 overflow-y-auto flex-1 space-y-3">
-                {% for card in column.cards.all %}
-                <div class="bg-white p-4 rounded shadow hover:shadow-md cursor-pointer group">
-                    <div class="flex justify-between items-start">
-                        <h4 class="font-bold text-gray-800 mb-2">{{ card.title }}</h4>
-                        <div class="hidden group-hover:flex space-x-1">
-                            <a href="{% url 'card_update' card.pk %}"
-                                class="text-xs text-blue-500 hover:text-blue-700">✎</a>
-                            <a href="{% url 'card_delete' card.pk %}"
-                                class="text-xs text-red-500 hover:text-red-700">✕</a>
-                        </div>
-                    </div>
-                    {% if card.description %}
-                    <p class="text-sm text-gray-600 mb-2">{{ card.description|truncatechars:50 }}</p>
-                    {% endif %}
-                    {% if card.due_date %}
-                    <div class="text-xs text-gray-500 mt-2 flex items-center">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                            </path>
-                        </svg>
-                        {{ card.due_date|date:"M d, Y" }}
-                    </div>
-                    {% endif %}
-                </div>
-                {% empty %}
-                <p class="text-center text-gray-500 text-sm py-4">No cards</p>
-                {% endfor %}
-            </div>
-
-            <!-- Column Footer (Add Card) -->
-            <div class="p-3 bg-gray-200 border-t border-gray-300">
-                <a href="{% url 'card_create' column.pk %}"
-                    class="block w-full text-center py-2 rounded text-gray-600 hover:bg-gray-300 font-semibold text-sm">
-                    + Add Card
-                </a>
-            </div>
+    <div class="d-flex gap-2 flex-wrap align-items-center">
+        <!-- View Toggle -->
+        <div class="btn-group" role="group" aria-label="View Toggle">
+            <a href="?view=scrum"
+                class="btn btn-sm {% if view_mode == 'scrum' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                <i class="bi bi-columns-gap me-1"></i>Scrum
+            </a>
+            <a href="?view=workload"
+                class="btn btn-sm {% if view_mode == 'workload' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                <i class="bi bi-people me-1"></i>Workload
+            </a>
         </div>
-        {% endfor %}
+
+        {% if is_owner %}
+        <!-- Owner-only actions -->
+        <a href="{% url 'board_members' board.pk %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-person-plus me-1"></i>Team
+        </a>
+        {% if board.status == 'active' %}
+        <form method="post" action="{% url 'board_finish' board.pk %}" class="d-inline"
+            onsubmit="return confirm('Close this project and generate analytics?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-warning">
+                <i class="bi bi-check2-circle me-1"></i>Finish Project
+            </button>
+        </form>
+        {% else %}
+        <a href="{% url 'board_analytics' board.pk %}" class="btn btn-sm btn-outline-info">
+            <i class="bi bi-bar-chart me-1"></i>Analytics
+        </a>
+        {% endif %}
+        {% endif %}
+
+        <a href="{% url 'board_list' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
     </div>
 </div>
+
+<!-- ══════════════════════════════════════
+     SCRUM VIEW
+════════════════════════════════════════ -->
+{% if view_mode == 'scrum' %}
+<div class="d-flex gap-3 overflow-auto pb-3 align-items-start">
+    {% for col_data in scrum_data %}
+    <div class="card scrum-col flex-shrink-0 border-0 shadow-sm" style="min-width:230px;">
+        <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom">
+            <span class="kanban-col-header fw-semibold text-secondary">{{ col_data.label }}</span>
+            <span class="badge bg-secondary rounded-pill">{{ col_data.cards|length }}</span>
+        </div>
+        <div class="card-body kanban-column p-2 bg-light">
+            {% for card in col_data.cards %}
+            {% include "tasks/_card_snippet.html" %}
+            {% empty %}
+            <p class="text-muted small text-center py-3">Empty</p>
+            {% endfor %}
+
+            <!-- Add Card: show on Backlog column if a default column exists -->
+            {% if default_column and col_data.status == 'backlog' %}
+            <a href="{% url 'card_create' default_column.pk %}" class="btn btn-outline-primary btn-sm w-100 mt-2">
+                <i class="bi bi-plus"></i> Add Task
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Manual column management (owner only) -->
+    {% if is_owner %}
+    <div class="flex-shrink-0" style="min-width:180px;">
+        <a href="{% url 'column_create' board.pk %}" class="btn btn-outline-secondary w-100">
+            <i class="bi bi-plus-circle me-1"></i>Add Column
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- ══════════════════════════════════════
+     WORKLOAD VIEW
+════════════════════════════════════════ -->
+{% elif view_mode == 'workload' %}
+<div class="d-flex gap-3 overflow-auto pb-3 align-items-start">
+    {% for wl in workload_data %}
+    <div class="card flex-shrink-0 border-0 shadow-sm" style="min-width:240px;">
+        <div class="card-header bg-white border-bottom">
+            <div class="d-flex justify-content-between align-items-center">
+                <!-- Member name or Unassigned -->
+                <div class="d-flex align-items-center gap-2">
+                    {% if wl.member %}
+                    <span class="avatar">{{ wl.member.username|first|upper }}</span>
+                    <span class="fw-semibold">{{ wl.member.username }}</span>
+                    {% if wl.member == board.owner %}
+                    <span class="badge bg-primary" style="font-size:.65rem;">Jefe</span>
+                    {% endif %}
+                    {% else %}
+                    <span class="avatar bg-secondary"><i class="bi bi-question"></i></span>
+                    <span class="fw-semibold text-muted">Unassigned</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ★ WORKLOAD BADGE: [Total | Overdue] ★
+                 Counts calculated in the view (_build_workload_data).
+                 Overdue = past due_date AND status != 'done'.
+            -->
+            <div class="mt-1 d-flex gap-1">
+                <span class="badge bg-secondary">{{ wl.total }} task{{ wl.total|pluralize }}</span>
+                {% if wl.overdue > 0 %}
+                <span class="badge bg-danger">{{ wl.overdue }} overdue</span>
+                {% else %}
+                <span class="badge bg-success">0 overdue</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card-body kanban-column p-2 bg-light">
+            {% for card in wl.cards %}
+            {% include "tasks/_card_snippet.html" %}
+            {% empty %}
+            <p class="text-muted small text-center py-3">No tasks</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Manual Columns (secondary) -->
+{% if columns %}
+<hr class="my-4">
+<h6 class="text-muted"><i class="bi bi-layout-three-columns me-1"></i>Manual Columns</h6>
+<div class="d-flex gap-3 overflow-auto pb-2">
+    {% for column in columns %}
+    <div class="card flex-shrink-0 border-0 shadow-sm" style="min-width:200px;">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">{{ column.title }}</span>
+            <div class="d-flex gap-1">
+                <a href="{% url 'column_update' column.pk %}" class="btn btn-outline-secondary btn-sm py-0 px-1"><i
+                        class="bi bi-pencil" style="font-size:.7rem;"></i></a>
+                <a href="{% url 'column_delete' column.pk %}" class="btn btn-outline-danger btn-sm py-0 px-1"><i
+                        class="bi bi-trash" style="font-size:.7rem;"></i></a>
+            </div>
+        </div>
+        <div class="card-body p-2 bg-light">
+            {% for card in column.cards.all %}
+            {% include "tasks/_card_snippet.html" %}
+            {% empty %}
+            <p class="text-muted small text-center py-2">Empty</p>
+            {% endfor %}
+            <a href="{% url 'card_create' column.pk %}" class="btn btn-outline-primary btn-sm w-100 mt-1">
+                <i class="bi bi-plus"></i> Add Task
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 {% endblock %}
