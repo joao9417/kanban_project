@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Analytics — {{ board.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-4">
+    <a href="{% url 'board_detail' board.pk %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h4 class="mb-0 fw-bold"><i class="bi bi-bar-chart-line me-2 text-primary"></i>Project Analytics</h4>
+</div>
+<h5 class="text-muted mb-4">{{ board.title }}</h5>
+
+{% if analytics %}
+<!-- Summary Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body">
+                <div class="display-6 fw-bold text-primary">{{ analytics.total_cards }}</div>
+                <small class="text-muted">Total Tasks</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body">
+                <div class="display-6 fw-bold text-success">{{ analytics.completed_cards }}</div>
+                <small class="text-muted">Completed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body">
+                <div class="display-6 fw-bold text-danger">{{ analytics.overdue_cards }}</div>
+                <small class="text-muted">Overdue</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+            <div class="card-body">
+                <div class="display-6 fw-bold text-info">{{ analytics.avg_progress|floatformat:1 }}%</div>
+                <small class="text-muted">Avg Progress</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rate Summary -->
+<div class="row g-3 mb-5">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="fw-semibold">Completion Rate</span>
+                    <span class="text-success fw-bold">{{ analytics.completion_rate }}%</span>
+                </div>
+                <div class="progress" style="height:8px;">
+                    <div class="progress-bar bg-success" style="width:{{ analytics.completion_rate }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="fw-semibold">Overdue Rate</span>
+                    <span class="text-danger fw-bold">{{ analytics.overdue_rate }}%</span>
+                </div>
+                <div class="progress" style="height:8px;">
+                    <div class="progress-bar bg-danger" style="width:{{ analytics.overdue_rate }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Per-Discipline Breakdown -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom fw-semibold">
+        <i class="bi bi-tools me-2"></i>Breakdown by Discipline
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Discipline</th>
+                    <th class="text-end">Tasks</th>
+                    <th class="text-end">Avg Progress</th>
+                    <th style="width:40%">Progress</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for disc_key, disc_stats in analytics.discipline_stats.items %}
+                {% if disc_stats.count > 0 %}
+                <tr>
+                    <td>
+                        <span
+                            class="badge bg-{% if disc_key == 'mec' %}primary{% elif disc_key == 'elec' %}warning text-dark{% elif disc_key == 'auto' %}success{% elif disc_key == 'refrig' %}info text-dark{% endif %}">
+                            {% if disc_key == 'mec' %}Mecánica
+                            {% elif disc_key == 'elec' %}Eléctrica
+                            {% elif disc_key == 'auto' %}Automatización
+                            {% elif disc_key == 'refrig' %}Refrigeración
+                            {% else %}{{ disc_key }}{% endif %}
+                        </span>
+                    </td>
+                    <td class="text-end">{{ disc_stats.count }}</td>
+                    <td class="text-end">{{ disc_stats.avg_progress|floatformat:1 }}%</td>
+                    <td>
+                        <div class="progress" style="height:6px;">
+                            <div class="progress-bar" style="width:{{ disc_stats.avg_progress }}%"></div>
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<small class="text-muted d-block mt-3">
+    <i class="bi bi-clock me-1"></i>Project closed on {{ analytics.finished_at|date:"M d, Y H:i" }}
+</small>
+
+{% else %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    Analytics will be available once the project is marked as <strong>Finished</strong>.
+</div>
+{% endif %}
+
+<div class="mt-4">
+    <a href="{% url 'board_list' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+    </a>
+</div>
+{% endblock %}
