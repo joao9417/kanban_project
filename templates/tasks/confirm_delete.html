@@ -1,25 +1,26 @@
-{% extends 'base.html' %}
-
-{% block title %}Confirm Delete{% endblock %}
+{% extends "base.html" %}
+{% block title %}Delete — Engineering Kanban{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white p-8 rounded shadow-md text-center">
-    <h1 class="text-2xl font-bold mb-4 text-red-600">Are you sure?</h1>
-    <p class="mb-6 text-gray-700">
-        You are about to delete "<strong>{{ object }}</strong>". This action cannot be undone.
-    </p>
-
-    <form method="post">
-        {% csrf_token %}
-        <div class="flex justify-center space-x-4">
-            <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                Yes, delete it
-            </button>
-            <a href="javascript:history.back()"
-                class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
-                Cancel
-            </a>
+<div class="row justify-content-center">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom border-danger">
+                <h5 class="mb-0 fw-bold text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Confirm Delete</h5>
+            </div>
+            <div class="card-body">
+                <p>Are you sure you want to delete <strong>{{ object }}</strong>? This action cannot be undone.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-1"></i>Yes, Delete
+                        </button>
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
         </div>
-    </form>
+    </div>
 </div>
 {% endblock %}
