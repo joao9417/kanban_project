@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}My Projects — Engineering Kanban{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 fw-bold mb-0"><i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Project Dashboard</h1>
+    <a href="{% url 'board_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>New Project
+    </a>
+</div>
+
+<!-- Owned Boards -->
+<h5 class="text-muted fw-semibold mb-3"><i class="bi bi-person-badge me-2"></i>My Projects</h5>
+{% if owned_boards %}
+<div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+    {% for board in owned_boards %}
+    <div class="col">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h5 class="card-title fw-bold mb-1">
+                        <a href="{% url 'board_detail' board.pk %}" class="text-decoration-none text-dark">
+                            {{ board.title }}
+                        </a>
+                    </h5>
+                    {% if board.status == 'finished' %}
+                    <span class="badge bg-secondary">Finished</span>
+                    {% else %}
+                    <span class="badge bg-success">Active</span>
+                    {% endif %}
+                </div>
+                <p class="card-text text-muted small mt-1">{{ board.description|truncatechars:80 }}</p>
+                <p class="card-text small text-muted">
+                    <i class="bi bi-people me-1"></i>{{ board.members.count }} member{{ board.members.count|pluralize }}
+                    &nbsp;·&nbsp;
+                    <i class="bi bi-calendar3 me-1"></i>{{ board.created_at|date:"M d, Y" }}
+                </p>
+            </div>
+            <div class="card-footer bg-transparent border-0 d-flex gap-2">
+                <a href="{% url 'board_detail' board.pk %}" class="btn btn-primary btn-sm flex-fill">
+                    <i class="bi bi-kanban me-1"></i>Open
+                </a>
+                <a href="{% url 'board_update' board.pk %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{% url 'board_delete' board.pk %}" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-trash"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-light border mb-5">
+    No projects yet. <a href="{% url 'board_create' %}">Create your first one!</a>
+</div>
+{% endif %}
+
+<!-- Shared Boards -->
+<h5 class="text-muted fw-semibold mb-3"><i class="bi bi-share me-2"></i>Shared With Me</h5>
+{% if shared_boards %}
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for board in shared_boards %}
+    <div class="col">
+        <div class="card h-100 shadow-sm border-0 border-start border-4 border-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h5 class="card-title fw-bold mb-1">
+                        <a href="{% url 'board_detail' board.pk %}" class="text-decoration-none text-dark">
+                            {{ board.title }}
+                        </a>
+                    </h5>
+                    {% if board.status == 'finished' %}
+                    <span class="badge bg-secondary">Finished</span>
+                    {% else %}
+                    <span class="badge bg-success">Active</span>
+                    {% endif %}
+                </div>
+                <p class="card-text text-muted small mt-1">{{ board.description|truncatechars:80 }}</p>
+                <p class="card-text small text-muted">
+                    <i class="bi bi-person me-1"></i>Owner: <strong>{{ board.owner.username }}</strong>
+                </p>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{% url 'board_detail' board.pk %}" class="btn btn-outline-primary btn-sm w-100">
+                    <i class="bi bi-kanban me-1"></i>Open Board
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-light border">No boards have been shared with you yet.</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,70 @@
+{% comment %}
+boards/_default_tasks_pane.html
+
+Reusable pane for one discipline's task list within the Default Tasks modal.
+
+Received context variables:
+  disc         – discipline code string (mec / elec / auto / refrig)
+  disc_label   – human-readable label
+  badge_class  – Bootstrap bg-* class for the discipline badge
+  tasks        – list of task title strings for this discipline
+  specialist   – username/full name of the assigned specialist, or None
+{% endcomment %}
+{% load board_extras %}
+
+{# ── Pane header: badge + specialist info + Select All button ── #}
+<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="badge {{ badge_class }}">{{ disc_label }}</span>
+        {% if specialist %}
+        <small class="text-success">
+            <i class="bi bi-person-check me-1"></i>
+            Auto-assigned to <strong>{{ specialist }}</strong>
+        </small>
+        {% else %}
+        <small class="text-muted">
+            <i class="bi bi-person-dash me-1"></i>
+            No specialist on team — tasks will be <em>unassigned</em>
+        </small>
+        {% endif %}
+    </div>
+    <button type="button"
+            class="btn btn-outline-secondary btn-sm"
+            onclick="dtToggleAll(this, '{{ disc }}')"
+            data-disc="{{ disc }}">
+        Select All
+    </button>
+</div>
+
+{# ── Task rows ── #}
+<div class="border rounded p-2 bg-white">
+    {% if tasks %}
+    {% for task in tasks %}
+    {% with i=forloop.counter0 %}
+    <div class="dt-task-row">
+        {# Checkbox #}
+        <input class="form-check-input flex-shrink-0 dt-cb"
+               type="checkbox"
+               name="sel_{{ disc }}_{{ i }}"
+               id="sel_{{ disc }}_{{ i }}"
+               value="{{ task }}"
+               data-disc="{{ disc }}"
+               data-idx="{{ i }}"
+               onchange="dtCheckChange(this)">
+        {# Task label #}
+        <label class="dt-task-label" for="sel_{{ disc }}_{{ i }}">{{ task }}</label>
+        {# Due date input — enabled only when checkbox is ticked #}
+        <input type="datetime-local"
+               name="due_{{ disc }}_{{ i }}"
+               id="due_{{ disc }}_{{ i }}"
+               class="due-input"
+               disabled
+               placeholder="Due date (opt.)"
+               title="Set a due date for this task">
+    </div>
+    {% endwith %}
+    {% endfor %}
+    {% else %}
+    <p class="text-muted small text-center py-3 mb-0">No default tasks defined for this discipline.</p>
+    {% endif %}
+</div>

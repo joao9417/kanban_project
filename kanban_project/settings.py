@@ -38,8 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Third-party apps
-    'tasks',
+    # Project apps
+    'boards.apps.BoardsConfig',
+    'teams.apps.TeamsConfig',
+    # Third-party
     'django.contrib.admindocs',
 ]
 
@@ -126,3 +128,6 @@ STATICFILES_DIRS = [
 
 LOGIN_REDIRECT_URL = 'board_list'
 LOGOUT_REDIRECT_URL = 'login'
+
+# Suppress migration warning for auto-generated primary keys
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

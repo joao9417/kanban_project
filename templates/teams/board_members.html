@@ -5,7 +5,10 @@
 <!-- Select2 CSS -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 <style>
-    /* Make Select2 match Bootstrap's input-group height */
+    /* ─── Role badge legend ────────────────────────────────── */
+    .role-legend { font-size: .75rem; }
+
+    /* ─── Select2 ↔ Bootstrap input-group sizing ──────────── */
     .select2-container .select2-selection--single {
         height: 38px;
         border-radius: 0.375rem;
@@ -19,11 +22,6 @@
     }
     .select2-container--default .select2-selection--single .select2-selection__arrow {
         height: 36px;
-    }
-    /* Make Select2 stretch to fill the input-group flex */
-    .input-group .select2-container {
-        flex: 1 1 auto;
-        width: auto !important;
     }
     .select2-container--default.select2-container--focus .select2-selection--single {
         border-color: #86b7fe;
@@ -42,11 +40,19 @@
             <h4 class="mb-0 fw-bold"><i class="bi bi-people me-2 text-primary"></i>Team — {{ board.title }}</h4>
         </div>
 
+        <!-- Role legend -->
+        <div class="d-flex flex-wrap gap-2 mb-4 role-legend">
+            <span class="badge bg-primary">Ing. Mecánico</span>
+            <span class="badge bg-warning text-dark">Ing. Eléctrico</span>
+            <span class="badge bg-success">Ing. de Control</span>
+            <span class="badge bg-danger">Téc. Refrigeración</span>
+        </div>
+
         <!-- Current Members -->
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white border-bottom fw-semibold">Current Members</div>
             <ul class="list-group list-group-flush">
-                <!-- Owner always listed first -->
+                <!-- Owner always first -->
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-2">
                         <span class="avatar bg-primary">{{ board.owner.username|first|upper }}</span>
@@ -55,18 +61,23 @@
                     </div>
                     <small class="text-muted">Owner</small>
                 </li>
-                {% for member in board.members.all %}
+
+                {% for membership in board.memberships.select_related %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="avatar">{{ member.username|first|upper }}</span>
-                        <span>{{ member.username }}</span>
+                        <span class="avatar">{{ membership.user.username|first|upper }}</span>
+                        <span>{{ membership.user.username }}</span>
+                        <!-- Specialty role badge with colour from ROLE_BADGE_COLOURS -->
+                        <span class="badge bg-{{ membership.role_badge_colour }}">
+                            {{ membership.get_specialty_role_display }}
+                        </span>
                     </div>
                     <form method="post" class="d-inline">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="remove">
-                        <input type="hidden" name="member_id" value="{{ member.pk }}">
+                        <input type="hidden" name="member_id" value="{{ membership.user.pk }}">
                         <button type="submit" class="btn btn-outline-danger btn-sm py-0"
-                            onclick="return confirm('Remove {{ member.username }} from this board?');">
+                            onclick="return confirm('Remove {{ membership.user.username }} from this board?');">
                             <i class="bi bi-person-dash"></i> Remove
                         </button>
                     </form>
@@ -79,20 +90,35 @@
 
         <!-- Add Member Form -->
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom fw-semibold">Add Member</div>
+            <div class="card-header bg-white border-bottom fw-semibold">
+                <i class="bi bi-person-plus me-2"></i>Add Member
+            </div>
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
-                    <div class="input-group">
+
+                    <!-- Engineer dropdown (Select2) -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="id_user">Engineer</label>
                         {{ form.user }}
-                        <button class="btn btn-primary" type="submit">
-                            <i class="bi bi-person-plus me-1"></i>Add
-                        </button>
+                        {% if form.user.errors %}
+                        <div class="text-danger small mt-1">{{ form.user.errors }}</div>
+                        {% endif %}
                     </div>
-                    <small class="text-muted">Select an engineer from the list to invite them to this board.</small>
-                    {% if form.user.errors %}
-                    <div class="text-danger small mt-1">{{ form.user.errors }}</div>
-                    {% endif %}
+
+                    <!-- Specialty role select -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="id_specialty_role">Specialty Role <span class="text-danger">*</span></label>
+                        {{ form.specialty_role }}
+                        {% if form.specialty_role.errors %}
+                        <div class="text-danger small mt-1">{{ form.specialty_role.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">The engineer's discipline determines the badge colour shown in the team list.</small>
+                    </div>
+
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-person-plus me-1"></i>Add to Team
+                    </button>
                 </form>
             </div>
         </div>
@@ -107,7 +133,6 @@
 <script>
     $(document).ready(function () {
         $('#id_user').select2({
-            theme: 'default',
             placeholder: '— Select an engineer —',
             allowClear: true,
             width: '100%',

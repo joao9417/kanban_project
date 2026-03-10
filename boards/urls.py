@@ -1,3 +1,7 @@
+"""
+boards/urls.py
+URL patterns for board, column, and card CRUD views.
+"""
 from django.urls import path
 from . import views
 
@@ -9,10 +13,11 @@ urlpatterns = [
     path('board/<int:pk>/update/', views.BoardUpdateView.as_view(), name='board_update'),
     path('board/<int:pk>/delete/', views.BoardDeleteView.as_view(), name='board_delete'),
 
-    # Board team management & project lifecycle
-    path('board/<int:pk>/members/', views.BoardMembersView.as_view(), name='board_members'),
-    path('board/<int:pk>/finish/', views.BoardFinishView.as_view(), name='board_finish'),
+    # Analytics (accessible once finished)
     path('board/<int:pk>/analytics/', views.BoardAnalyticsView.as_view(), name='board_analytics'),
+
+    # Bulk creation of predefined tasks (owner only)
+    path('board/<int:pk>/default-tasks/', views.BoardDefaultTasksView.as_view(), name='board_default_tasks'),
 
     # Column CRUD
     path('board/<int:board_id>/column/new/', views.ColumnCreateView.as_view(), name='column_create'),
