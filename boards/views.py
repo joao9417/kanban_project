@@ -197,11 +197,16 @@ class BoardDetailView(LoginRequiredMixin, DetailView):
 
 
     def _build_scrum_data(self, all_cards):
-        """Returns list of {status, label, cards} dicts, one per status column."""
+        """
+        Groups all board cards into status buckets matching the project workflow.
+        Returns a list of dictionaries containing the status key, human title,
+        and a list of card objects for that status. Used for the default column view.
+        """
         return [
             {
                 'status': status_key,
                 'label':  status_label,
+                # Filter cards in-memory to avoid redundant N+1 queries per status
                 'cards':  [c for c in all_cards if c.status == status_key],
             }
             for status_key, status_label in Card.STATUS_CHOICES
@@ -209,22 +214,29 @@ class BoardDetailView(LoginRequiredMixin, DetailView):
 
     def _build_workload_data(self, board, all_cards):
         """
-        Returns list of {member, cards, total, overdue} dicts, one per
-        board participant (owner first, then members), plus an 'Unassigned' bucket.
+        Builds a resource-centric view of the board tasks.
+        Organizes tasks by assignee (Board Owner first, then members alphabetically).
+        Calculates total cards and real-time overdue alerts per engineer.
+        Includes an 'Unassigned' bucket for cards without a designated specialist.
         """
         now     = timezone.now()
+        # Ensure Owner is always the first column in the workload view
         members = [board.owner] + list(board.members.exclude(pk=board.owner.pk))
 
         workload          = []
         assigned_card_ids = set()
 
         for member in members:
+            # Match cards to assignee (prefetch_related used in all_cards for performance)
             member_cards = [c for c in all_cards if c.assignee_id == member.pk]
             assigned_card_ids.update(c.pk for c in member_cards)
+
+            # Count overdue items: due date passed and status not 'done'
             overdue_count = sum(
                 1 for c in member_cards
                 if c.due_date and c.status != Card.STATUS_DONE and now > c.due_date
             )
+
             workload.append({
                 'member':  member,
                 'cards':   member_cards,
@@ -507,11 +519,13 @@ class BoardDefaultTasksView(LoginRequiredMixin, View):
         POST = request.POST
 
         for disc, task_list in DEFAULT_TASKS.items():
-            assignee = role_to_user.get(disc)  # None if no specialist in team
+            # Get specialist for this discipline (role codes match discipline codes)
+            assignee = role_to_user.get(disc)
             for i, task_title in enumerate(task_list):
+                # The browser sends check_disc_index for each row marked as active
                 checkbox_key = f'sel_{disc}_{i}'
                 if checkbox_key not in POST:
-                    continue  # Task not selected
+                    continue
 
                 # Parse optional due date
                 due_date = None

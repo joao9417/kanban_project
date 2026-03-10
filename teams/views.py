@@ -46,8 +46,10 @@ class BoardMembersView(LoginRequiredMixin, View):
         action = request.POST.get('action')
 
         if action == 'remove':
+            # Handle removal of existing members via POST 'action=remove'
             member_id = request.POST.get('member_id')
             try:
+                # Use User ID and Board instance to find the explicit through-table row
                 membership = BoardMembership.objects.get(board=board, user_id=member_id)
                 username   = membership.user.username
                 membership.delete()
@@ -88,8 +90,10 @@ class BoardFinishView(LoginRequiredMixin, View):
         if board.status == Board.STATUS_FINISHED:
             messages.warning(request, 'This board is already finished.')
         else:
+            # Change status to 'finished' which is the trigger for analytics generation
             board.status = Board.STATUS_FINISHED
-            board.save()  # triggers post_save signal → creates BoardAnalytics
+            # The Board.save() call sends a post_save signal processed in boards/signals.py
+            board.save()
             messages.success(
                 request,
                 f"Project '{board.title}' has been closed. Analytics saved.",

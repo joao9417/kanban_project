@@ -1,8 +1,8 @@
 """
 boards/signals.py
 
-post_save signal for Board: when status transitions to 'finished',
-auto-calculates and persists analytics into BoardAnalytics.
+Automatic background processing triggered by model events:
+- Board Finish: Generates analytics when a board is marked as 'finished'.
 """
 from django.db.models.signals import post_save
 from django.dispatch import receiver

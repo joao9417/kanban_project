@@ -1,8 +1,6 @@
 """
 boards/forms.py
-
-Forms for creating and updating Boards, Columns, and Cards.
-All form widgets are styled with Bootstrap 5 classes.
+Bootstrap-styled forms for managing Board, Column, and Card entities.
 """
 from django import forms
 from django.contrib.auth.models import User
