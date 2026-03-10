@@ -1,6 +1,37 @@
 {% extends "base.html" %}
 {% block title %}Team — {{ board.title }}{% endblock %}
 
+{% block extra_head %}
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<style>
+    /* Make Select2 match Bootstrap's input-group height */
+    .select2-container .select2-selection--single {
+        height: 38px;
+        border-radius: 0.375rem;
+        border-color: #dee2e6;
+        padding: 4px 8px;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 28px;
+        color: #212529;
+        padding-left: 4px;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
+    /* Make Select2 stretch to fill the input-group flex */
+    .input-group .select2-container {
+        flex: 1 1 auto;
+        width: auto !important;
+    }
+    .select2-container--default.select2-container--focus .select2-selection--single {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-7">
@@ -53,18 +84,35 @@
                 <form method="post">
                     {% csrf_token %}
                     <div class="input-group">
-                        {{ form.username }}
+                        {{ form.user }}
                         <button class="btn btn-primary" type="submit">
                             <i class="bi bi-person-plus me-1"></i>Add
                         </button>
                     </div>
-                    <small class="text-muted">Enter the exact username of the engineer to invite.</small>
-                    {% if form.username.errors %}
-                    <div class="text-danger small mt-1">{{ form.username.errors }}</div>
+                    <small class="text-muted">Select an engineer from the list to invite them to this board.</small>
+                    {% if form.user.errors %}
+                    <div class="text-danger small mt-1">{{ form.user.errors }}</div>
                     {% endif %}
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+{% block extra_js %}
+<!-- jQuery (required by Select2; Bootstrap 5 does not bundle it) -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#id_user').select2({
+            theme: 'default',
+            placeholder: '— Select an engineer —',
+            allowClear: true,
+            width: '100%',
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}
