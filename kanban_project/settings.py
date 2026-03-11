@@ -82,15 +82,19 @@ WSGI_APPLICATION = 'kanban_project.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+    'default': dj_database_url.config(
+        # Esto lee la variable DATABASE_URL que configuramos en Render
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600
+    )
+}
+
+# Verificación de seguridad para evitar que use SQLite por error
+if not DATABASES['default']:
+    DATABASES['default'] = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}
-
-# Use PostgreSQL if DATABASE_URL environment variable is set (Production)
-if os.environ.get('DATABASE_URL'):
-    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 
 
 # Password validation
