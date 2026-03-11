@@ -21,11 +21,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar el proyecto
 COPY . /app/
 
+# Dar permisos de ejecución al script de entrada
+RUN chmod +x /app/entrypoint.sh
+
 # Crear carpeta para estáticos y recolectarlos
 RUN python manage.py collectstatic --noinput
 
 # Puerto que usará la app (Render o similar lo asignarán automáticamente)
 EXPOSE 8000
 
-# Comando para arrancar con Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "kanban_project.wsgi:application"]
+# Usar el script como comando de inicio en lugar de llamar a gunicorn directo
+CMD ["/app/entrypoint.sh"]
