@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.views.generic import View
+from django.db import transaction
 
 from boards.models import Board
 from boards.views import get_board_owner_or_403, get_board_or_403
@@ -99,3 +100,46 @@ class BoardFinishView(LoginRequiredMixin, View):
                 f"Project '{board.title}' has been closed. Analytics saved.",
             )
         return redirect('board_analytics', pk=pk)
+
+
+class BoardTransferLeadershipView(LoginRequiredMixin, View):
+    """
+    POST: Transfers board ownership (Líder) to an existing member.
+    The current leader takes the member's previous specialty_role.
+    Only the board owner may call this endpoint.
+    """
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        board = get_board_owner_or_403(pk, request.user)
+        
+        if board.memberships.count() == 0:
+            messages.error(request, 'Cannot transfer leadership: the project has no other members.')
+            return redirect('board_detail', pk=pk)
+            
+        new_leader_id = request.POST.get('new_leader_id')
+        if not new_leader_id:
+            messages.error(request, 'No new leader selected.')
+            return redirect('board_detail', pk=pk)
+
+        try:
+            new_leader_membership = board.memberships.get(user_id=new_leader_id)
+        except BoardMembership.DoesNotExist:
+            messages.error(request, 'Selected user is not a member of this project.')
+            return redirect('board_detail', pk=pk)
+
+        old_owner = board.owner
+        new_owner = new_leader_membership.user
+        
+        with transaction.atomic():
+            # 1. Old owner takes the membership (and role) of the new leader
+            new_leader_membership.user = old_owner
+            new_leader_membership.save()
+            
+            # 2. New leader becomes the board owner
+            board.owner = new_owner
+            board.save()
+            
+        messages.success(
+            request, 
+            f'Leadership successfully transferred to {new_owner.get_full_name() or new_owner.username}. You are now a project member.'
+        )
+        return redirect('board_detail', pk=pk)
