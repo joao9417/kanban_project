@@ -59,6 +59,15 @@
             </a>
         </div>
         {% if is_owner %}
+        {% if board.memberships.count > 0 %}
+        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#transferLeadershipModal">
+            <i class="bi bi-arrow-left-right me-1"></i>Transferir Liderazgo
+        </button>
+        {% else %}
+        <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="Agrega miembros al equipo primero para transferir el liderazgo">
+            <i class="bi bi-arrow-left-right me-1"></i>Transferir Liderazgo
+        </button>
+        {% endif %}
         <a href="{% url 'board_members' board.pk %}" class="btn btn-sm btn-outline-secondary">
             <i class="bi bi-person-plus me-1"></i>Team
         </a>
@@ -308,6 +317,47 @@
           </div>
         </div>
 
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ═══════════════════════════════════════════════════════════════════════════ #}
+{# TRANSFER LEADERSHIP MODAL                                                   #}
+{# Only the board owner (Jefe) can see this modal.                             #}
+{# ═══════════════════════════════════════════════════════════════════════════ #}
+<div class="modal fade" id="transferLeadershipModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="post" action="{% url 'board_transfer_leadership' board.pk %}">
+      {% csrf_token %}
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">
+            <i class="bi bi-arrow-left-right me-2 text-primary"></i>
+            Transferir Liderazgo
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="alert alert-info py-2 small">
+            <i class="bi bi-info-circle me-1"></i> Selecciona al miembro del equipo que se convertirá en el nuevo dueño del proyecto (Jefe). Tú pasarás a ser un miembro regular, asumiendo su rol actual.
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold small">Nuevo Líder del Proyecto</label>
+            <select name="new_leader_id" class="form-select" required>
+              <option value="">-- Seleccionar miembro --</option>
+              {% for membership in board.memberships.all %}
+              <option value="{{ membership.user.pk }}">
+                {{ membership.user.get_full_name|default:membership.user.username }} ({{ membership.get_specialty_role_display }})
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer d-flex justify-content-between">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Confirmar Transferencia</button>
+        </div>
       </div>
     </form>
   </div>
