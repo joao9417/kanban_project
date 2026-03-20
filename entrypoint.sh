@@ -3,6 +3,9 @@
 # Salir inmediatamente si un comando falla
 set -e
 
+echo "--- Recopilando archivos estaticos (Admin y otros) ---"
+python manage.py collectstatic --noinput
+
 echo "--- Aplicando migraciones ---"
 python manage.py migrate --noinput
 

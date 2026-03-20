@@ -133,9 +133,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+#se comenta esta lista para eliminar el warning (staticfiles.W004)
+#STATICFILES_DIRS = [
+#    BASE_DIR / 'static',
+#]
 
 # Production Static Files
 STATIC_ROOT = BASE_DIR / 'staticfiles'
